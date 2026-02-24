@@ -1,63 +1,56 @@
-# EXL AI Strategy Simulation
+# The AI Strategy Boardroom
 
-EXL AI Strategy Simulation built with Next.js 14, Tailwind CSS, and Framer Motion.
+A 5-level interactive decision simulation game for corporate training and workshops. Players act as a C-suite executive guiding their company through critical AI transformation decisions across 12 months.
 
 ## Overview
 
-This project is an executive strategy simulation where a player:
+Every choice is immediately validated — or punished — by a **live stock ticker** that reacts to strategy in real time. The game feels like a *Bloomberg Terminal meets a War Room*: dark, data-dense, high-stakes, cinematic.
 
-1. Selects an industry and crisis scenario
-2. Makes 6 sequential strategic decisions
-3. Gets a final Enterprise Value (EV) outcome and leadership archetype
+### Key Features
 
-The app currently supports:
+- **5 Strategic Levels** across 12 months of AI transformation
+- **Live Stock Ticker** as the central feedback system
+- **Real-time Price Compounding** — choices stack and compound
+- **Dramatic Market Reactions** with analyst notes
+- **Final Market Verdict** based on performance
 
-- 4 industries
-- 4 crisis types per industry
-- 16 total scenario paths
-- 96 total decisions (16 x 6)
+## Game Structure
 
-## Core Scoring Model
+| Level | Month | Decision |
+|-------|-------|----------|
+| 1 | Month 1 | The Readiness Dilemma |
+| 2 | Month 4 | The Domain Crucible |
+| 3 | Month 7 | The Agentic Shift |
+| 4 | Month 10 | The Trust & Governance Shield |
+| 5 | Month 12 | The Operating Model |
 
-The game tracks four metrics:
+## Stock Ticker Mechanics
 
-- **MV**: Market Value Recovery
-- **TR**: Trust Restoration
-- **OR**: Operational Risk
-- **TL**: Talent & Culture
+- **Starting Price**: $100.00
+- **Price compounds** after each decision
+- **Visual feedback**: Green (gain), Red (loss), Yellow (volatile)
+- **Analyst Notes** provide market commentary
 
-Final result is based on the EV formula:
+### Market Verdicts
 
-`EV = (MV * 50) + (TR * 50) + TL contribution - OR penalty - TL negative penalty`
+| Final Price | Verdict | Description |
+|-------------|---------|-------------|
+| ≥ $130 | STRONG BUY | AI Transformation Champion |
+| $110-$129 | OUTPERFORM | Solid Strategist |
+| $90-$109 | HOLD | Cautious Progress |
+| $70-$89 | UNDERPERFORM | Missed Opportunities |
+| < $70 | SELL | Strategy Collapse |
 
-Where:
+## Design
 
-- `OR penalty = max(0, OR - 35) * 80`
-- `TL contribution = TL * 25` when `TL >= 0`
-- `TL negative penalty = 500` when `TL < 0`
+**Aesthetic**: Bloomberg Terminal meets War Room
 
-## Flow
-
-- **Select**: Choose industry + crisis
-- **Intro**: Scenario brief and metric targets
-- **Game**: 6 decisions across Months 1, 3, 6, 9, 12, 15
-- **Result**: EV value, recovery tier, scorecard, and archetype
-
-## Leadership Archetypes
-
-- The Comeback Architect
-- The Velocity Maximizer
-- The Trust Guardian
-- The Efficiency Trap
-- The Cautionary Tale
-
-## Branding
-
-Theme uses EXL orange accent to match logo:
-
-- Primary accent: `#F26522`
-- Dark boardroom background with surface layers
-- Orange highlights on actions, timeline, and key metrics
+- **Background**: Near-black (#0A0A0F)
+- **Gains**: Electric green (#00FF88)
+- **Losses**: Bright red (#FF3B3B)
+- **Volatile**: Amber (#FFB800)
+- **Accent**: EXL Orange (#FF6600)
+- **Typography**: DM Sans + DM Mono (terminal-style)
 
 ## Tech Stack
 
@@ -74,7 +67,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`.
+Open `http://localhost:3000`
 
 Build for production:
 
@@ -85,31 +78,42 @@ npm start
 
 ## Project Structure
 
-```text
+```
 app/
-  layout.tsx
-  page.tsx
-  globals.css
+  layout.tsx          # Root layout with metadata
+  page.tsx            # Main game orchestrator
+  globals.css         # Global styles and animations
 components/
-  SelectionScreen.tsx
-  IntroScreen.tsx
-  GameScreen.tsx
-  ResultScreen.tsx
-  MonthTimeline.tsx
-  ScoreMeter.tsx
-  ArchetypeReveal.tsx
-  ChoiceCard.tsx
-  InsightReveal.tsx
-  EXLLogo.tsx
-  BackgroundOrbs.tsx
+  IntroScreen.tsx     # Game introduction
+  GameScreen.tsx      # Decision interface
+  ChoiceCard.tsx      # Strategy choice cards
+  InsightReveal.tsx   # THE MARKET REACTS section
+  ResultScreen.tsx    # Final verdict and recap
+  StockTicker.tsx     # Header ticker component
+  TickerSidebar.tsx   # Full sidebar with chart
+  MonthTimeline.tsx   # Progress timeline
+  EXLLogo.tsx         # Logo component
+  BackgroundOrbs.tsx  # Ambient visual effects
 lib/
-  gameData.ts
-  archetypes.ts
-  types.ts
-  useConfetti.ts
+  types.ts            # TypeScript interfaces
+  gameData.ts         # 5 levels with all content
+  archetypes.ts       # Market verdict logic
 ```
 
-## Notes
+## iPad Optimization
 
-- This repo contains the adapted UI from the board-challenge base with EXL-specific game data and stock ticker logic.
-- All scenario content is embedded in `lib/gameData.ts`.
+The game is optimized for iPad presentation:
+- Responsive layout with sidebar on tablets
+- Touch-friendly 44px minimum tap targets
+- Safe area insets for notched devices
+- Viewport settings to prevent unwanted zoom
+
+## Facilitator Mode
+
+During insight reveals, a facilitator note appears:
+
+> "After reading the Second Order Insight, pause for effect, point to the ticker, and say: 'And here is how the Street reacted to that move...'"
+
+---
+
+Built with EXL branding for executive AI strategy workshops.
