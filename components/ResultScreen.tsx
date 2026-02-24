@@ -1,189 +1,229 @@
 'use client';
 
-import { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import ScoreMeter from './ScoreMeter';
-import { Scores, SCORE_METRICS } from '@/lib/gameData';
-import { computeEV, formatEV, getRecoveryTier, determineArchetype, isWinningOutcome, Archetype } from '@/lib/archetypes';
-import { useConfetti } from '@/lib/useConfetti';
+import { useEffect, useState } from 'react';
+import { StockState, ChoiceRecord, MarketVerdict } from '@/lib/types';
+import { LEVELS } from '@/lib/gameData';
 
-interface ResultScreenProps {
-  scores: Scores;
-  choices: ('A' | 'B')[];
-  archetype: Archetype;
-  onReset: () => void;
-}
-
-export default function ResultScreen({ scores, choices, archetype, onReset }: ResultScreenProps) {
-  const ev = computeEV(scores);
-  const tier = getRecoveryTier(ev);
-  const isWinner = isWinningOutcome(ev);
-  const { fireSuccess } = useConfetti();
+function Confetti({ isActive }: { isActive: boolean }) {
+  const [particles, setParticles] = useState<Array<{ id: number; x: number; delay: number; color: string }>>([]);
 
   useEffect(() => {
-    if (isWinner) {
-      const timer = setTimeout(() => fireSuccess(), 800);
-      return () => clearTimeout(timer);
+    if (isActive) {
+      const colors = ['#00FF88', '#FFB800', '#FF6600', '#00BFFF', '#FF69B4'];
+      const newParticles = Array.from({ length: 50 }, (_, i) => ({
+        id: i,
+        x: Math.random() * 100,
+        delay: Math.random() * 2,
+        color: colors[Math.floor(Math.random() * colors.length)],
+      }));
+      setParticles(newParticles);
     }
-  }, [isWinner, fireSuccess]);
+  }, [isActive]);
+
+  if (!isActive) return null;
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+      {particles.map((particle) => (
+        <motion.div
+          key={particle.id}
+          initial={{ y: -20, x: `${particle.x}vw`, opacity: 1, rotate: 0 }}
+          animate={{ 
+            y: '110vh', 
+            opacity: [1, 1, 0],
+            rotate: Math.random() > 0.5 ? 360 : -360,
+          }}
+          transition={{ 
+            duration: 3 + Math.random() * 2, 
+            delay: particle.delay,
+            ease: 'linear',
+          }}
+          className="absolute w-3 h-3 rounded-sm"
+          style={{ backgroundColor: particle.color }}
+        />
+      ))}
+    </div>
+  );
+}
+
+interface ResultScreenProps {
+  stockState: StockState;
+  choiceRecords: ChoiceRecord[];
+  verdict: MarketVerdict;
+  onRestart: () => void;
+}
+
+export default function ResultScreen({
+  stockState,
+  choiceRecords,
+  verdict,
+  onRestart,
+}: ResultScreenProps) {
+  const netChange = stockState.price - 100;
+  const netChangePercent = ((stockState.price - 100) / 100) * 100;
+  const isPositive = netChange >= 0;
+  const isWinner = stockState.price >= 110;
+
+  return (
+    <div className="h-full flex flex-col items-center justify-start px-3 md:px-6 py-4 md:py-6 overflow-y-auto">
+      <Confetti isActive={isWinner} />
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center py-3 border-b border-border/30 flex-shrink-0"
+        transition={{ duration: 0.6 }}
+        className="max-w-2xl w-full"
       >
-        <p className="font-mono text-[9px] text-exl-orange tracking-[0.2em] uppercase mb-0.5">
-          Month 18 &middot; Strategy Audit Complete
-        </p>
-        <h1 className="text-lg font-bold text-white">
-          {isWinner ? '\uD83C\uDF89 Transformation Complete' : 'Strategy Analysis Complete'}
-        </h1>
-      </motion.div>
-
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl mx-auto p-3 md:p-4 space-y-4">
-          {/* Enterprise Value Display */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+        {/* Header */}
+        <div className="text-center mb-4 md:mb-6">
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-center py-6 rounded-2xl border-2 relative overflow-hidden"
-            style={{ 
-              borderColor: `${tier.color}60`,
-              background: `radial-gradient(ellipse at center, ${tier.color}08 0%, transparent 70%)`,
-            }}
+            className="font-mono text-[10px] md:text-xs text-white/50 uppercase tracking-widest mb-1 md:mb-2"
           >
-            <p className="font-mono text-[10px] tracking-[0.3em] uppercase mb-2" style={{ color: tier.color }}>
-              {tier.label}
-            </p>
-            <motion.p
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4, type: 'spring', stiffness: 100 }}
-              className="text-5xl md:text-6xl font-bold font-mono"
-              style={{ color: tier.color }}
-            >
-              {formatEV(ev)}
-            </motion.p>
-            <p className="text-white/40 text-xs mt-2 font-mono">Enterprise Value Recovered</p>
-          </motion.div>
-
-          {/* Choices Path */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="flex items-center justify-center gap-1"
+            Portfolio Summary
+          </motion.p>
+          <motion.h1
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.3, type: 'spring' }}
+            className="text-2xl md:text-3xl lg:text-4xl font-bold text-white"
           >
-            <span className="text-white/30 text-xs font-mono mr-2">Your Path:</span>
-            {choices.map((choice, index) => (
-              <span
-                key={index}
-                className={`font-mono font-bold px-2 py-0.5 rounded text-xs
-                  ${choice === 'A' ? 'bg-blue-500/20 text-blue-400' : 'bg-purple-500/20 text-purple-400'}
-                `}
-              >
-                {choice}
-              </span>
-            ))}
-          </motion.div>
-
-          {/* Scorecard */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            <p className="font-mono text-[9px] text-white/40 uppercase tracking-wider mb-2">Your Scorecard</p>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
-              {SCORE_METRICS.map((metric, index) => (
-                <ScoreMeter
-                  key={metric.key}
-                  label={metric.name}
-                  scoreKey={metric.key}
-                  value={scores[metric.key]}
-                  delay={0.5 + index * 0.05}
-                  compact={true}
-                />
-              ))}
-            </div>
-          </motion.div>
-
-          {/* EV Formula Breakdown */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="bg-surface/50 border border-border rounded-lg p-3"
-          >
-            <p className="font-mono text-[9px] text-white/40 uppercase tracking-wider mb-2">EV Formula Breakdown</p>
-            <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-              <div className="flex justify-between">
-                <span className="text-white/50">MV &times; 50</span>
-                <span className="text-white/80">{formatEV(scores.MV * 50)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-white/50">TR &times; 50</span>
-                <span className="text-white/80">{formatEV(scores.TR * 50)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-white/50">TL contribution</span>
-                <span className={scores.TL < 0 ? 'text-red-400' : 'text-white/80'}>
-                  {scores.TL < 0 ? '-$500M penalty' : formatEV(scores.TL * 25)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-white/50">OR penalty</span>
-                <span className={scores.OR > 35 ? 'text-red-400' : 'text-green-400'}>
-                  {scores.OR > 35 ? `-${formatEV(Math.max(0, scores.OR - 35) * 80)}` : 'None'}
-                </span>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Archetype Result */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            className="bg-surface border border-border rounded-xl p-4"
-            style={{ borderColor: `${archetype.color}40` }}
-          >
-            <div className="flex items-start gap-3">
-              <div 
-                className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
-                style={{ backgroundColor: `${archetype.color}20` }}
-              >
-                {archetype.icon}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-mono text-[9px] text-white/40 uppercase tracking-wider">Your Leadership Profile</p>
-                <h3 className="text-white font-bold text-lg leading-tight">{archetype.name}</h3>
-                <p className="text-white/50 text-xs">{archetype.subtitle}</p>
-              </div>
-            </div>
-            <div className="mt-3 space-y-2">
-              <p className="text-white/70 text-xs leading-relaxed">{archetype.diagnosis}</p>
-              <p className="text-white/50 text-xs leading-relaxed">{archetype.impact}</p>
-              <p className="text-white/40 text-xs leading-relaxed italic">{archetype.reality}</p>
-            </div>
-          </motion.div>
-
-          {/* Action Buttons */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            className="flex items-center gap-2 pt-2 pb-4"
-          >
-            <button onClick={onReset} className="btn-primary text-sm py-2 px-4">
-              Play Again
-            </button>
-          </motion.div>
+            Final Verdict
+          </motion.h1>
         </div>
-      </div>
+
+        {/* Market Verdict Card */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4 }}
+          className="rounded-xl border-2 p-4 md:p-6 mb-4 md:mb-6 text-center"
+          style={{
+            borderColor: `${verdict.color}40`,
+            backgroundColor: `${verdict.color}10`,
+            boxShadow: `0 0 30px ${verdict.color}20`,
+          }}
+        >
+          <motion.div
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.6, type: 'spring', stiffness: 200 }}
+          >
+            <p
+              className="font-mono text-3xl md:text-4xl lg:text-5xl font-bold mb-1 md:mb-2"
+              style={{ color: verdict.color, textShadow: `0 0 20px ${verdict.color}` }}
+            >
+              {verdict.label}
+            </p>
+            <p className="text-white/70 text-sm md:text-lg">{verdict.description}</p>
+          </motion.div>
+        </motion.div>
+
+        {/* Final Price */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="bg-surface border border-border rounded-xl p-4 md:p-5 mb-4 md:mb-6"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-white/50 font-mono text-[9px] md:text-xs uppercase tracking-wider mb-1">
+                EXLS · Final Price
+              </p>
+              <p className="text-white font-mono text-2xl md:text-3xl lg:text-4xl font-bold">
+                ${stockState.price.toFixed(2)}
+              </p>
+            </div>
+            <div className="text-right">
+              <p className={`font-mono text-lg md:text-xl lg:text-2xl font-bold ${isPositive ? 'text-ticker-gain' : 'text-ticker-loss'}`}>
+                {isPositive ? '+' : ''}{netChangePercent.toFixed(1)}%
+              </p>
+              <p className="text-white/50 font-mono text-xs md:text-sm">
+                ({isPositive ? '+' : ''}${netChange.toFixed(2)})
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Path Recap */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="bg-surface border border-border rounded-xl p-3 md:p-5 mb-4 md:mb-6"
+        >
+          <p className="text-white/50 font-mono text-[9px] md:text-xs uppercase tracking-wider mb-3">
+            Your Strategic Path
+          </p>
+          
+          <div className="space-y-2 md:space-y-3">
+            {choiceRecords.map((record, index) => {
+              const level = LEVELS[index];
+              const tickerColors = {
+                gain: { text: 'text-ticker-gain', icon: '🟢' },
+                loss: { text: 'text-ticker-loss', icon: '🔴' },
+                volatile: { text: 'text-ticker-volatile', icon: '🟡' },
+              };
+              const tc = tickerColors[record.tickerResult.type];
+
+              return (
+                <motion.div
+                  key={record.level}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.7 + index * 0.1 }}
+                  className="flex items-center justify-between p-2 md:p-3 bg-white/5 rounded-lg border border-white/10"
+                >
+                  <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                    <span className="text-sm md:text-lg flex-shrink-0">{tc.icon}</span>
+                    <div className="min-w-0">
+                      <p className="text-white font-medium text-xs md:text-sm truncate">
+                        L{level.id}: {level.title}
+                      </p>
+                      <p className="text-white/50 text-[10px] md:text-xs font-mono truncate">
+                        {record.choiceLabel}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0 ml-2">
+                    <p className={`font-mono text-xs md:text-sm font-bold ${tc.text}`}>
+                      {record.tickerResult.percent >= 0 ? '+' : ''}{record.tickerResult.percent.toFixed(1)}%
+                    </p>
+                    <p className="text-white/40 text-[9px] md:text-xs font-mono">
+                      {record.tickerResult.label}
+                    </p>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        </motion.div>
+
+        {/* Restart Button */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.2 }}
+          className="text-center"
+        >
+          <motion.button
+            onClick={onRestart}
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            className="btn-primary text-base md:text-lg px-8 md:px-12 py-3 md:py-4"
+          >
+            Play Again
+            <span className="ml-2 md:ml-3">↻</span>
+          </motion.button>
+          
+          <p className="mt-3 md:mt-4 text-white/30 text-[10px] md:text-xs font-mono">
+            Can you beat your score?
+          </p>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

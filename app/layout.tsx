@@ -16,8 +16,15 @@ const dmMono = DM_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Valtrex Group \u00B7 AI Comeback Simulation',
-  description: 'Executive AI Strategy Simulation \u2014 Rebuild enterprise value through 6 critical decisions',
+  title: 'The AI Strategy Boardroom | EXL',
+  description: '5-Level Interactive Decision Game — Guide your company through critical AI transformation decisions',
+}
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 }
 
 export default function RootLayout({

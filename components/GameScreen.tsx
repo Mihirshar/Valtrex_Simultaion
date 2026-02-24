@@ -4,32 +4,29 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ChoiceCard from './ChoiceCard';
 import InsightReveal from './InsightReveal';
-import { Level, Scores } from '@/lib/gameData';
+import { Level } from '@/lib/types';
+import { getStockImpact } from '@/lib/gameData';
 
 interface GameScreenProps {
   level: Level;
   currentLevelIndex: number;
   totalLevels: number;
-  scores: Scores;
+  currentPrice: number;
   selectedChoice: 'A' | 'B' | null;
   onChoice: (choice: 'A' | 'B') => void;
   onNext: () => void;
-  onUndo?: () => void;
   onReset?: () => void;
-  canUndo?: boolean;
 }
 
 export default function GameScreen({
   level,
   currentLevelIndex,
   totalLevels,
-  scores,
+  currentPrice,
   selectedChoice,
   onChoice,
   onNext,
-  onUndo,
   onReset,
-  canUndo = false,
 }: GameScreenProps) {
   const [showInsight, setShowInsight] = useState(false);
 
@@ -39,7 +36,7 @@ export default function GameScreen({
 
   useEffect(() => {
     if (selectedChoice !== null && !showInsight) {
-      const timer = setTimeout(() => setShowInsight(true), 500);
+      const timer = setTimeout(() => setShowInsight(true), 600);
       return () => clearTimeout(timer);
     }
   }, [selectedChoice, showInsight]);
@@ -54,55 +51,50 @@ export default function GameScreen({
     onNext();
   };
 
-  const handleRepeat = () => {
-    if (onUndo) {
-      setShowInsight(false);
-      onUndo();
-    }
-  };
-
   const isLastLevel = currentLevelIndex === totalLevels - 1;
 
+  const stockImpact = selectedChoice
+    ? getStockImpact(level, selectedChoice, currentPrice)
+    : null;
+
   return (
-    <div className="h-full flex flex-col px-4 md:px-6 py-3 md:py-4">
+    <div className="h-full flex flex-col px-3 md:px-6 py-3 md:py-4">
+      {/* Header */}
       <div className="flex items-center justify-between mb-3 md:mb-4">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {onReset && (
             <button
               onClick={onReset}
-              className="text-white/40 hover:text-white/70 text-sm flex items-center gap-1.5 transition-colors"
+              className="text-white/40 hover:text-white/70 text-xs md:text-sm flex items-center gap-1 transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              <svg className="w-3.5 h-3.5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-              Restart
+              <span className="hidden sm:inline">Restart</span>
             </button>
           )}
         </div>
-        <p className="text-white/40 text-xs font-mono">
-          Decision {currentLevelIndex + 1} of {totalLevels}
+        <p className="text-white/40 text-[10px] md:text-xs font-mono">
+          Level {currentLevelIndex + 1}/{totalLevels}
         </p>
       </div>
 
+      {/* Main Content */}
       <div className="flex-1 flex items-start justify-center overflow-y-auto">
         <div className="max-w-2xl w-full">
-          <div className="mb-3 md:mb-4">
-            <p className="font-mono text-[10px] text-exl-orange tracking-[0.2em] uppercase mb-1">
-              {level.month} &middot; Decision {level.id} of {totalLevels}
+          {/* Level Title */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 md:mb-5"
+          >
+            <p className="font-mono text-[10px] md:text-xs text-exl-orange tracking-[0.15em] md:tracking-[0.2em] uppercase mb-1">
+              {level.month}
             </p>
-            <h2 className="text-lg md:text-2xl font-bold text-white">
-              {level.title}
+            <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-white">
+              Level {level.id}: {level.title}
             </h2>
-          </div>
-
-          <div className="bg-surface border-l-4 border-l-exl-orange border border-border rounded-xl p-3 md:p-4 mb-3 md:mb-4">
-            <p className="font-mono text-[10px] text-white/40 uppercase tracking-wider mb-2">
-              The Scenario
-            </p>
-            <p className="text-white/80 leading-relaxed text-sm">
-              {level.scenario}
-            </p>
-          </div>
+          </motion.div>
 
           <AnimatePresence mode="wait">
             {!showInsight ? (
@@ -112,18 +104,22 @@ export default function GameScreen({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
-                className="space-y-3"
+                className="space-y-3 md:space-y-4"
               >
+                <p className="text-white/50 text-xs md:text-sm font-mono mb-3">
+                  Choose your strategy:
+                </p>
+                
                 <ChoiceCard
                   choice="A"
-                  description={level.choices.A}
+                  data={level.choices.A}
                   isSelected={selectedChoice === 'A'}
                   isDisabled={selectedChoice !== null && selectedChoice !== 'A'}
                   onSelect={() => handleChoiceSelect('A')}
                 />
                 <ChoiceCard
                   choice="B"
-                  description={level.choices.B}
+                  data={level.choices.B}
                   isSelected={selectedChoice === 'B'}
                   isDisabled={selectedChoice !== null && selectedChoice !== 'B'}
                   onSelect={() => handleChoiceSelect('B')}
@@ -137,14 +133,15 @@ export default function GameScreen({
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.3 }}
               >
-                <InsightReveal
-                  choice={selectedChoice!}
-                  insight={level.insights[selectedChoice!]}
-                  onNext={handleNext}
-                  onRepeat={canUndo ? handleRepeat : undefined}
-                  isLastLevel={isLastLevel}
-                  canRepeat={canUndo}
-                />
+                {stockImpact && selectedChoice && (
+                  <InsightReveal
+                    choice={selectedChoice}
+                    choiceData={level.choices[selectedChoice]}
+                    stockImpact={stockImpact}
+                    onNext={handleNext}
+                    isLastLevel={isLastLevel}
+                  />
+                )}
               </motion.div>
             )}
           </AnimatePresence>

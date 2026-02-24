@@ -10,8 +10,8 @@ const config: Config = {
     extend: {
       colors: {
         exl: {
-          orange: '#F26522',
-          'orange-light': '#F4943E',
+          orange: '#FF6600',
+          'orange-light': '#FF8533',
           'orange-dark': '#E85D26',
         },
         surface: {
@@ -19,9 +19,14 @@ const config: Config = {
           light: '#1A1A1A',
         },
         border: '#2A2A2A',
-        background: '#0F0F0F',
+        background: '#0A0A0F',
         success: '#4ADE80',
         failure: '#F87171',
+        ticker: {
+          gain: '#00FF88',
+          loss: '#FF3B3B',
+          volatile: '#FFB800',
+        },
       },
       fontFamily: {
         sans: ['var(--font-dm-sans)', 'system-ui', 'sans-serif'],

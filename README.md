@@ -1,6 +1,6 @@
-# AI Valuation Increase Quiz
+# EXL AI Strategy Simulation
 
-Valtrex Group AI Comeback Simulation built with Next.js 14, Tailwind CSS, and Framer Motion.
+EXL AI Strategy Simulation built with Next.js 14, Tailwind CSS, and Framer Motion.
 
 ## Overview
 
@@ -111,5 +111,5 @@ lib/
 
 ## Notes
 
-- This repo contains the adapted UI from the board-challenge base with Valtrex-specific game data and EV logic.
+- This repo contains the adapted UI from the board-challenge base with EXL-specific game data and stock ticker logic.
 - All scenario content is embedded in `lib/gameData.ts`.

@@ -3,15 +3,25 @@
 @tailwind utilities;
 
 :root {
-  --exl-orange: #F26522;
-  --exl-orange-light: #F4943E;
+  --exl-orange: #FF6600;
+  --exl-orange-light: #FF8533;
   --exl-orange-dark: #E85D26;
-  --background: #0F0F0F;
+  --background: #0A0A0F;
   --surface: #161616;
   --surface-light: #1A1A1A;
   --border: #2A2A2A;
   --success: #4ADE80;
   --failure: #F87171;
+  
+  /* Bloomberg Terminal Colors */
+  --ticker-gain: #00FF88;
+  --ticker-loss: #FF3B3B;
+  --ticker-volatile: #FFB800;
+  
+  /* Edge glow effects */
+  --glow-gain: rgba(0, 255, 136, 0.4);
+  --glow-loss: rgba(255, 59, 59, 0.4);
+  --glow-volatile: rgba(255, 184, 0, 0.4);
 }
 
 * {
@@ -118,6 +128,50 @@ body {
   box-shadow: 0 0 30px rgba(248, 113, 113, 0.4);
 }
 
+/* Bloomberg Terminal ticker glow effects */
+.glow-ticker-gain {
+  box-shadow: 0 0 40px var(--glow-gain), 0 0 80px var(--glow-gain);
+}
+
+.glow-ticker-loss {
+  box-shadow: 0 0 40px var(--glow-loss), 0 0 80px var(--glow-loss);
+}
+
+.glow-ticker-volatile {
+  box-shadow: 0 0 40px var(--glow-volatile), 0 0 80px var(--glow-volatile);
+}
+
+/* Full-screen edge glow animation */
+@keyframes edge-glow-gain {
+  0% {
+    box-shadow: inset 0 0 60px var(--glow-gain), inset 0 0 120px var(--glow-gain);
+    opacity: 0.8;
+  }
+  100% {
+    box-shadow: inset 0 0 0px transparent;
+    opacity: 0;
+  }
+}
+
+@keyframes edge-glow-loss {
+  0% {
+    box-shadow: inset 0 0 60px var(--glow-loss), inset 0 0 120px var(--glow-loss);
+    opacity: 0.8;
+  }
+  100% {
+    box-shadow: inset 0 0 0px transparent;
+    opacity: 0;
+  }
+}
+
+.edge-glow-gain {
+  animation: edge-glow-gain 1.5s ease-out forwards;
+}
+
+.edge-glow-loss {
+  animation: edge-glow-loss 1.5s ease-out forwards;
+}
+
 /* Stable layout for transitions */
 html, body, #__next {
   height: 100%;
@@ -144,6 +198,59 @@ html, body, #__next {
 /* Smooth scrolling */
 * {
   scroll-behavior: smooth;
+}
+
+/* Touch-friendly improvements for iPad */
+@media (pointer: coarse) {
+  .btn-primary,
+  .btn-secondary,
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Prevent text selection on interactive elements */
+button,
+[role="button"] {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Safe area insets for notched devices */
+@supports (padding: max(0px)) {
+  .safe-area-inset {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Thin scrollbar for sidebar */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* Prevent overflow during page transitions */
