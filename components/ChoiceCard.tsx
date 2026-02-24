@@ -59,8 +59,8 @@ export default function ChoiceCard({
         </div>
         
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1.5 md:mb-2">
-            <h3 className={`font-bold text-base md:text-lg ${c.text}`}>
+          <div className="flex items-center gap-2 mb-1 md:mb-1.5">
+            <h3 className={`font-bold text-lg md:text-xl ${c.text}`}>
               {data.title}
             </h3>
           </div>
@@ -72,8 +72,11 @@ export default function ChoiceCard({
             {data.strategicTags}
           </div>
           
-          <p className="text-white/60 text-xs md:text-sm leading-relaxed">
-            Choose this path to see how the market reacts.
+          <p className="text-white/70 text-sm md:text-base leading-relaxed">
+            {data.insightRecap}
+          </p>
+          <p className="text-white/40 text-xs md:text-sm mt-2 italic">
+            "{data.marketReacts}"
           </p>
         </div>
       </div>

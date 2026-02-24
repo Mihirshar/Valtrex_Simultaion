@@ -148,6 +148,36 @@ export default function ResultScreen({
           </div>
         </motion.div>
 
+        {/* Performance Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.55 }}
+          className="grid grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-6"
+        >
+          {(() => {
+            const gains = choiceRecords.filter(r => r.tickerResult.type === 'gain').length;
+            const losses = choiceRecords.filter(r => r.tickerResult.type === 'loss').length;
+            const volatile = choiceRecords.filter(r => r.tickerResult.type === 'volatile').length;
+            return (
+              <>
+                <div className="bg-ticker-gain/10 border border-ticker-gain/30 rounded-lg p-2 md:p-3 text-center">
+                  <p className="text-ticker-gain font-mono text-xl md:text-2xl font-bold">{gains}</p>
+                  <p className="text-white/50 text-[9px] md:text-xs font-mono uppercase">Gains</p>
+                </div>
+                <div className="bg-ticker-loss/10 border border-ticker-loss/30 rounded-lg p-2 md:p-3 text-center">
+                  <p className="text-ticker-loss font-mono text-xl md:text-2xl font-bold">{losses}</p>
+                  <p className="text-white/50 text-[9px] md:text-xs font-mono uppercase">Losses</p>
+                </div>
+                <div className="bg-ticker-volatile/10 border border-ticker-volatile/30 rounded-lg p-2 md:p-3 text-center">
+                  <p className="text-ticker-volatile font-mono text-xl md:text-2xl font-bold">{volatile}</p>
+                  <p className="text-white/50 text-[9px] md:text-xs font-mono uppercase">Volatile</p>
+                </div>
+              </>
+            );
+          })()}
+        </motion.div>
+
         {/* Path Recap */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -163,9 +193,9 @@ export default function ResultScreen({
             {choiceRecords.map((record, index) => {
               const level = LEVELS[index];
               const tickerColors = {
-                gain: { text: 'text-ticker-gain', icon: '🟢' },
-                loss: { text: 'text-ticker-loss', icon: '🔴' },
-                volatile: { text: 'text-ticker-volatile', icon: '🟡' },
+                gain: { text: 'text-ticker-gain', bg: 'bg-ticker-gain/10', border: 'border-ticker-gain/30', icon: '▲' },
+                loss: { text: 'text-ticker-loss', bg: 'bg-ticker-loss/10', border: 'border-ticker-loss/30', icon: '▼' },
+                volatile: { text: 'text-ticker-volatile', bg: 'bg-ticker-volatile/10', border: 'border-ticker-volatile/30', icon: '◆' },
               };
               const tc = tickerColors[record.tickerResult.type];
 
@@ -175,30 +205,65 @@ export default function ResultScreen({
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.7 + index * 0.1 }}
-                  className="flex items-center justify-between p-2 md:p-3 bg-white/5 rounded-lg border border-white/10"
+                  className={`p-3 md:p-4 rounded-lg border ${tc.bg} ${tc.border}`}
                 >
-                  <div className="flex items-center gap-2 md:gap-3 min-w-0">
-                    <span className="text-sm md:text-lg flex-shrink-0">{tc.icon}</span>
-                    <div className="min-w-0">
-                      <p className="text-white font-medium text-xs md:text-sm truncate">
-                        L{level.id}: {level.title}
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`font-mono text-sm ${tc.text}`}>{tc.icon}</span>
+                        <p className="text-white font-semibold text-sm md:text-base">
+                          Level {level.id}: {level.title}
+                        </p>
+                      </div>
+                      <p className="text-white/70 text-xs md:text-sm">
+                        You chose: <span className={`font-semibold ${tc.text}`}>{record.choiceLabel}</span>
                       </p>
-                      <p className="text-white/50 text-[10px] md:text-xs font-mono truncate">
-                        {record.choiceLabel}
+                    </div>
+                    <div className="text-right flex-shrink-0 ml-3">
+                      <p className={`font-mono text-base md:text-lg font-bold ${tc.text}`}>
+                        {record.tickerResult.percent >= 0 ? '+' : ''}{record.tickerResult.percent.toFixed(1)}%
+                      </p>
+                      <p className="text-white/50 text-[10px] md:text-xs font-mono">
+                        {record.tickerResult.label}
                       </p>
                     </div>
                   </div>
-                  <div className="text-right flex-shrink-0 ml-2">
-                    <p className={`font-mono text-xs md:text-sm font-bold ${tc.text}`}>
-                      {record.tickerResult.percent >= 0 ? '+' : ''}{record.tickerResult.percent.toFixed(1)}%
-                    </p>
-                    <p className="text-white/40 text-[9px] md:text-xs font-mono">
-                      {record.tickerResult.label}
-                    </p>
-                  </div>
+                  <p className="text-white/50 text-[10px] md:text-xs font-mono italic border-t border-white/10 pt-2 mt-2">
+                    "{record.tickerResult.analystNote}"
+                  </p>
                 </motion.div>
               );
             })}
+          </div>
+        </motion.div>
+
+        {/* Key Insight */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.0 }}
+          className="bg-exl-orange/10 border border-exl-orange/30 rounded-xl p-4 md:p-5 mb-4 md:mb-6"
+        >
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-exl-orange/20 flex items-center justify-center flex-shrink-0">
+              <svg className="w-4 h-4 md:w-5 md:h-5 text-exl-orange" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-exl-orange font-semibold text-sm md:text-base mb-1">Key Takeaway</p>
+              <p className="text-white/70 text-xs md:text-sm leading-relaxed">
+                {stockState.price >= 130 
+                  ? "Your strategic choices demonstrate mastery of AI transformation. You balanced speed with sustainability, embraced calculated risks, and built a foundation for long-term value creation."
+                  : stockState.price >= 110
+                  ? "Solid strategic thinking with room for bolder moves. You navigated the AI landscape well, though some opportunities for greater impact were left on the table."
+                  : stockState.price >= 90
+                  ? "A cautious approach that preserved value but limited upside. Consider where calculated risks could have accelerated your transformation journey."
+                  : stockState.price >= 70
+                  ? "Several strategic missteps impacted your trajectory. The key lesson: AI transformation requires both speed and thoughtful execution—neither alone is sufficient."
+                  : "Critical strategic errors compounded over time. Remember: in AI transformation, early decisions create path dependencies that are difficult to reverse."}
+              </p>
+            </div>
           </div>
         </motion.div>
 
