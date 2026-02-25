@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ChoiceCard from './ChoiceCard';
 import InsightReveal from './InsightReveal';
 import { Level } from '@/lib/types';
-import { getStockImpact } from '@/lib/gameData';
+import { getStockImpact, getChoiceDescription } from '@/lib/gameData';
 
 interface GameScreenProps {
   level: Level;
@@ -13,6 +13,8 @@ interface GameScreenProps {
   totalLevels: number;
   currentPrice: number;
   selectedChoice: 'A' | 'B' | null;
+  variantIndices: { A: number; B: number };
+  displayOrder: ('A' | 'B')[];
   onChoice: (choice: 'A' | 'B') => void;
   onNext: () => void;
   onReset?: () => void;
@@ -24,6 +26,8 @@ export default function GameScreen({
   totalLevels,
   currentPrice,
   selectedChoice,
+  variantIndices,
+  displayOrder,
   onChoice,
   onNext,
   onReset,
@@ -82,19 +86,29 @@ export default function GameScreen({
       {/* Main Content */}
       <div className="flex-1 flex items-start justify-center overflow-y-auto">
         <div className="max-w-2xl w-full">
-          {/* Level Title */}
+          {/* Level Header */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-4 md:mb-5"
+            className="mb-3 md:mb-4"
           >
             <p className="font-mono text-[10px] md:text-xs text-exl-orange tracking-[0.15em] md:tracking-[0.2em] uppercase mb-1">
-              {level.month}
+              {level.month} · Decision {level.id} of {totalLevels}
             </p>
-            <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-white">
-              Level {level.id}: {level.title}
+            <h2 className="text-lg md:text-2xl font-bold text-white">
+              {level.title}
             </h2>
           </motion.div>
+
+          {/* Scenario Card */}
+          <div className="bg-surface border-l-4 border-l-exl-orange border border-border rounded-xl p-3 md:p-4 mb-3 md:mb-4">
+            <p className="font-mono text-[10px] text-white/40 uppercase tracking-wider mb-2">
+              The Scenario
+            </p>
+            <p className="text-white/80 leading-relaxed text-sm">
+              {level.scenario}
+            </p>
+          </div>
 
           <AnimatePresence mode="wait">
             {!showInsight ? (
@@ -106,24 +120,20 @@ export default function GameScreen({
                 transition={{ duration: 0.3 }}
                 className="space-y-3 md:space-y-4"
               >
-                <p className="text-white/50 text-xs md:text-sm font-mono mb-3">
-                  Choose your strategy:
-                </p>
-                
-                <ChoiceCard
-                  choice="A"
-                  data={level.choices.A}
-                  isSelected={selectedChoice === 'A'}
-                  isDisabled={selectedChoice !== null && selectedChoice !== 'A'}
-                  onSelect={() => handleChoiceSelect('A')}
-                />
-                <ChoiceCard
-                  choice="B"
-                  data={level.choices.B}
-                  isSelected={selectedChoice === 'B'}
-                  isDisabled={selectedChoice !== null && selectedChoice !== 'B'}
-                  onSelect={() => handleChoiceSelect('B')}
-                />
+                {displayOrder.map((actualChoice, displayIndex) => {
+                  const displayLabel = displayIndex === 0 ? 'A' : 'B';
+                  return (
+                    <ChoiceCard
+                      key={actualChoice}
+                      choice={displayLabel as 'A' | 'B'}
+                      data={level.choices[actualChoice]}
+                      description={getChoiceDescription(level, actualChoice, variantIndices[actualChoice])}
+                      isSelected={selectedChoice === actualChoice}
+                      isDisabled={selectedChoice !== null && selectedChoice !== actualChoice}
+                      onSelect={() => handleChoiceSelect(actualChoice)}
+                    />
+                  );
+                })}
               </motion.div>
             ) : (
               <motion.div

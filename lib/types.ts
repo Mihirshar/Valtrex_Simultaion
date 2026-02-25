@@ -17,6 +17,11 @@ export interface Level {
   title: string;
   month: string;
   monthNumber: number;
+  scenario: string;
+  choiceDescriptions: {
+    A: string[];
+    B: string[];
+  };
   choices: {
     A: Choice;
     B: Choice;

@@ -10,7 +10,7 @@ import MonthTimeline from '@/components/MonthTimeline';
 import StockTicker from '@/components/StockTicker';
 import TickerSidebar from '@/components/TickerSidebar';
 import EXLLogo from '@/components/EXLLogo';
-import { INITIAL_STOCK, LEVELS, calculateStockState } from '@/lib/gameData';
+import { INITIAL_STOCK, LEVELS, calculateStockState, generateVariantIndices, generateDisplayOrder } from '@/lib/gameData';
 import { StockState, ChoiceRecord, MarketVerdict } from '@/lib/types';
 import { getMarketVerdict } from '@/lib/archetypes';
 
@@ -31,6 +31,8 @@ export default function Home() {
   const [currentSelectedChoice, setCurrentSelectedChoice] = useState<'A' | 'B' | null>(null);
   const [showEdgeGlow, setShowEdgeGlow] = useState<'gain' | 'loss' | 'volatile' | null>(null);
   const [verdict, setVerdict] = useState<MarketVerdict | null>(null);
+  const [variantIndices, setVariantIndices] = useState<{ A: number; B: number }[]>(() => generateVariantIndices());
+  const [displayOrder, setDisplayOrder] = useState<('A' | 'B')[][]>(() => generateDisplayOrder());
 
   const handleStart = useCallback(() => {
     setPhase('game');
@@ -85,6 +87,8 @@ export default function Home() {
     setCurrentSelectedChoice(null);
     setShowEdgeGlow(null);
     setVerdict(null);
+    setVariantIndices(generateVariantIndices());
+    setDisplayOrder(generateDisplayOrder());
   }, []);
 
   const showTicker = phase === 'game';
@@ -166,6 +170,8 @@ export default function Home() {
                   totalLevels={LEVELS.length}
                   currentPrice={stockState.price}
                   selectedChoice={currentSelectedChoice}
+                  variantIndices={variantIndices[currentLevel]}
+                  displayOrder={displayOrder[currentLevel]}
                   onChoice={handleChoice}
                   onNext={handleNext}
                   onReset={handleReset}

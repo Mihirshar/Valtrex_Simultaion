@@ -6,6 +6,7 @@ import { Choice } from '@/lib/types';
 interface ChoiceCardProps {
   choice: 'A' | 'B';
   data: Choice;
+  description: string;
   isSelected: boolean;
   isDisabled: boolean;
   onSelect: () => void;
@@ -14,6 +15,7 @@ interface ChoiceCardProps {
 export default function ChoiceCard({
   choice,
   data,
+  description,
   isSelected,
   isDisabled,
   onSelect,
@@ -59,24 +61,8 @@ export default function ChoiceCard({
         </div>
         
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 md:mb-1.5">
-            <h3 className={`font-bold text-lg md:text-xl ${c.text}`}>
-              {data.title}
-            </h3>
-          </div>
-          
-          <div className={`
-            inline-block px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-mono font-medium
-            border ${c.tag} mb-2
-          `}>
-            {data.strategicTags}
-          </div>
-          
-          <p className="text-white/70 text-sm md:text-base leading-relaxed">
-            {data.insightRecap}
-          </p>
-          <p className="text-white/40 text-xs md:text-sm mt-2 italic">
-            "{data.marketReacts}"
+          <p className="text-white/80 text-sm md:text-base leading-relaxed">
+            {description}
           </p>
         </div>
       </div>
